@@ -11,7 +11,7 @@
             margin: 0 auto;
             padding: 20px;
         }
-        input, button {
+        input, button, select {
             margin: 10px 0;
             padding: 5px;
         }
@@ -19,36 +19,82 @@
             margin-top: 20px;
             font-weight: bold;
         }
+        .hidden {
+            display: none;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>ボード枚数計算機</h1>
-    <div>
+    <div class="input-group">
+        <label for="calculationType">計算方法:</label>
+        <select id="calculationType" onchange="toggleInputFields()">
+            <option value="area">平米</option>
+            <option value="dimensions">縦x横</option>
+        </select>
+    </div>
+    <div id="areaInput" class="input-group">
         <label for="roomSize">部屋の広さ (平米):</label>
         <input type="number" id="roomSize" value="30">
     </div>
-    <div>
+    <div id="dimensionsInput" class="hidden">
+        <div class="input-group">
+            <label for="roomWidth">部屋の幅 (mm):</label>
+            <input type="number" id="roomWidth" value="5000">
+        </div>
+        <div class="input-group">
+            <label for="roomHeight">部屋の高さ (mm):</label>
+            <input type="number" id="roomHeight" value="6000">
+        </div>
+    </div>
+    <div class="input-group">
         <label for="boardWidth">ボードの幅 (mm):</label>
         <input type="number" id="boardWidth" value="910">
     </div>
-    <div>
+    <div class="input-group">
         <label for="boardHeight">ボードの高さ (mm):</label>
         <input type="number" id="boardHeight" value="1820">
     </div>
     <button onclick="calculateBoards()">計算</button>
     <div id="result"></div>
-
     <script>
+        function toggleInputFields() {
+            const calculationType = document.getElementById('calculationType').value;
+            const areaInput = document.getElementById('areaInput');
+            const dimensionsInput = document.getElementById('dimensionsInput');
+            
+            if (calculationType === 'area') {
+                areaInput.classList.remove('hidden');
+                dimensionsInput.classList.add('hidden');
+            } else {
+                areaInput.classList.add('hidden');
+                dimensionsInput.classList.remove('hidden');
+            }
+        }
+
         function calculateBoards() {
-            const roomSize = parseFloat(document.getElementById('roomSize').value);
+            const calculationType = document.getElementById('calculationType').value;
             const boardWidth = parseFloat(document.getElementById('boardWidth').value);
             const boardHeight = parseFloat(document.getElementById('boardHeight').value);
+            let exactNumberOfBoards, roundedNumberOfBoards;
 
-            const roomSizeInMm2 = roomSize * 1000000;
-            const boardSizeInMm2 = boardWidth * boardHeight;
-            const exactNumberOfBoards = roomSizeInMm2 / boardSizeInMm2;
-            const roundedNumberOfBoards = Math.ceil(exactNumberOfBoards);
+            if (calculationType === 'area') {
+                const roomSize = parseFloat(document.getElementById('roomSize').value);
+                const roomSizeInMm2 = roomSize * 1000000;
+                const boardSizeInMm2 = boardWidth * boardHeight;
+                exactNumberOfBoards = roomSizeInMm2 / boardSizeInMm2;
+            } else {
+                const roomWidth = parseFloat(document.getElementById('roomWidth').value);
+                const roomHeight = parseFloat(document.getElementById('roomHeight').value);
+                const horizontalBoards = Math.ceil(roomWidth / boardWidth);
+                const verticalBoards = Math.ceil(roomHeight / boardHeight);
+                exactNumberOfBoards = horizontalBoards * verticalBoards;
+            }
 
+            roundedNumberOfBoards = Math.ceil(exactNumberOfBoards);
             const resultElement = document.getElementById('result');
             resultElement.innerHTML = `
                 <p>必要なボードの枚数: ${roundedNumberOfBoards} 枚</p>
